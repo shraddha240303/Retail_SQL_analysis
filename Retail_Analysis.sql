@@ -82,3 +82,21 @@ when cummulative/total_revenue <= 0.95 then 'B'
 else 'C'
 end as abc_class
 from abc_cmmu order by revenue desc;
+
+-- MOM sales analysis
+
+with monthly_sales as (
+	select 
+		date_format(`Date`, '%Y-%m-01') as month,
+        sum(`Total Amount`) as total_sales
+	from sales_data
+    group by date_format(`Date`, '%Y-%m-01')
+)
+select 
+	month,
+    total_sales,
+    lag(total_sales) over(order by month) as previous_month_sales,
+    (total_sales - lag(total_sales) over(order by month)) as monthly_growth,
+    round((total_sales - lag(total_sales) over(order by month))*100/lag(total_sales) over(order by month), 2) as monthly_growth_percentage
+    from monthly_sales
+    order by month;
